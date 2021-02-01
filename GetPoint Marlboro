@@ -17,16 +17,10 @@ if(empty($xyz) || !file_exists($xyz)){
     echo " [!] file not found".PHP_EOL;
     goto enterList;
 }
-
-echo "Total Topic : ";
-$totalTopic = trim(fgets(STDIN));
-
 echo "\n";
-$no = 1;
 foreach (explode("\n", str_replace("\r", "", file_get_contents($xyz))) as $key => $akun) {
     $pecah = explode("|", trim($akun));
     $token = trim($pecah[0]);
-
     $headers = [
         'Host: api.marlboro.id',
         'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0',
@@ -38,13 +32,15 @@ foreach (explode("\n", str_replace("\r", "", file_get_contents($xyz))) as $key =
         'Origin: https://www.marlboro.id',
         'Connection: close',
     ];
-    for ($i=0; $i < $totalTopic ; $i++) { 
-    $data = '{"is_branded":"1","columns":[{"data":"title","searchable":"true","search":{"value":""}}],"order":[{"column":"0","dir":"desc"}],"start":"0","length":"9","cpage":"0","search":{"value":""}}';
-    $getArticle = curl('https://api.marlboro.id/api/article/list_article', $data,  $headers);
-    $stringid = get_between($getArticle[1], '"string_id":"', '",');
-    $json = json_decode($getArticle[1]);
-    $article = $json->data->data->data;
-    $hasil = $article[$i]->string_id;
+	$getProfile= json_decode(curl('https://api.marlboro.id/api/auth/get-profile', '{}',  $headers)[1]);
+	echo "Akun ke-".($key+1)." => ".$getProfile->data->email."\n";
+	$data = '{"is_branded":"1","columns":[{"data":"title","searchable":"true","search":{"value":""}}],"order":[{"column":"0","dir":"desc"}],"start":"0","length":"9","cpage":"0","search":{"value":""}}';
+	$getTotalArticle = curl('https://api.marlboro.id/api/article/list_article', $data,  $headers);
+	$totalTopic = json_decode($getTotalArticle[1])->data->data->data;
+	
+    foreach ($totalTopic as $noTopic => $tT) { 
+	$noTopic++;
+    $hasil = $tT->string_id;
 
     $headers = [
         'Host: api.marlboro.id',
@@ -81,16 +77,14 @@ foreach (explode("\n", str_replace("\r", "", file_get_contents($xyz))) as $key =
     $getPoint = curl('https://api.marlboro.id/api/auth/get-short-profile', $data, $headers);
     $totalPoint = get_between($getPoint[1], '"point":', ',"');
 
-
     if(strpos($view[1], 'Success log view article')) {
-        echo "[$no] Sedang Melihat Topic Ke $no [Information] : Success Log View Article [Get Point] : $point [Total Point] : $totalPoint\n";
+        echo "[-] Sedang Melihat Topic Ke".$noTopic." [Information] : Success Log View Article [Get Point] : $point [Total Point] : $totalPoint\n";
     } else if(strpos($view[1], 'success insert log')) {
-        echo "[$no] Sedang Melihat Topic Ke  $no [Information] : Sudah Dilihat [Total Point] : $totalPoint\n";
+        echo "[-] Sedang Melihat Topic Ke  ".$noTopic." [Information] : Sudah Dilihat [Total Point] : $totalPoint\n";
     } else if(strpos($view[1], 'Success log play video')) {
-        echo "[$no] Sedang Melihat Topic Ke $no [Information] : Success log play video [Total Poin] : $totalPoint\n";
+        echo "[-] Sedang Melihat Topic Ke	".$noTopic." [Information] : Success log play video [Total Poin] : $totalPoint\n";
     }
-
-    $no++;
+	$noTopic++;
     }
 }
 
@@ -131,7 +125,7 @@ function acak($panjang)
     $string = '';
     for ($i = 0; $i < $panjang; $i++) {
   $pos = rand(0, strlen($karakter)-1);
-  $string .= $karakter{$pos};
+  $string .= $karakter[$pos];
     }
     return $string;
 }
@@ -142,7 +136,7 @@ function angka($panjang)
     $string = '';
     for ($i = 0; $i < $panjang; $i++) {
   $pos = rand(0, strlen($karakter)-1);
-  $string .= $karakter{$pos};
+  $string .= $karakter[$pos];
     }
     return $string;
 }
